@@ -24,8 +24,8 @@ def create_app():
     this_app = Flask(__name__)
     this_app.app_name = "bt_text"
 
-    with open(os.environ.get('BTT_CONFIG'), 'r') as f:
-        this_app.json_config = json.load(f)
+    #with open(os.environ.get('BTT_CONFIG'), 'r') as f:
+    #    this_app.json_config = json.load(f)
 
     return this_app
 
