@@ -1,5 +1,7 @@
 from flask import Flask, json
 import os
+import bt_text.bt_request as api
+import pudb
 
 # User story:
 # Sends stop code, gets next times for the stop. If there are fewer than 3
@@ -26,7 +28,7 @@ def create_app():
 
     with open(os.environ.get('BTT_CONFIG'), 'r') as f:
         this_app.json_config = json.load(f)
-
+    
     return this_app
 
 app = create_app()
@@ -34,6 +36,8 @@ app = create_app()
 
 @app.route('/')
 def index():
+    #reply = api.get_busses_for_stop_code(1113)
+    #pudb.set_trace()
     return 'Hello World!'
 
 

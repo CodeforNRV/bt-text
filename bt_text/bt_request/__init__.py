@@ -1,6 +1,5 @@
 import xml.etree.ElementTree as ET
 import requests
-import btRequest as bt
 
 
 def REQ_GetArrivalAndDepartureTimesForTrip(tripID):
@@ -59,7 +58,8 @@ def GetNextDepartureTimesForRouteAndStopCode(routeShortName, stopCode, numTimesT
 
     return results[:numTimesToReturn]
 
-def GetBussesForStopCode(stopCode):
+
+def get_busses_for_stop_code(stopCode):
     root = REQ_GetScheduledRoutes(stopCode)
 
     results = []
@@ -69,8 +69,9 @@ def GetBussesForStopCode(stopCode):
 
     return results
 
+
 def GetTimesForStopCode(stopCode):
-    routes = GetBussesForStopCode(stopCode)
+    routes = get_busses_for_stop_code(stopCode)
 
     numTimesToReturn = 1
 
@@ -82,7 +83,3 @@ def GetTimesForStopCode(stopCode):
         times.append( (route, GetNextDepartureTimesForRouteAndStopCode(route, stopCode, numTimesToReturn) ) )
 
     return times
-
-
-if __name__ == '__main__':
-    print GetTimesForStopCode(1602)
