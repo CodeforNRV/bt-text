@@ -178,7 +178,7 @@ def get_next_departure_times_for_route_and_stop_code(routeShortName, stopCode, n
 
     return { "success": success, "status_code": resp["status_code"], "times": results[:numTimesToReturn]}
 
-def get_busses_for_stop_code(stopCode):
+def get_buses_for_stop_code(stopCode):
     resp = __req_get_scheduled_routes(stopCode)
 
     route_short_names = []
@@ -199,19 +199,19 @@ def get_busses_for_stop_code(stopCode):
 
 
 def get_times_for_stop_code(stopCode):
-    busses_resp = get_busses_for_stop_code(stopCode)
+    buses_resp = get_buses_for_stop_code(stopCode)
 
     times = []
-    success = busses_resp["success"]
-    if busses_resp["status_code"] != None and busses_resp["status_code"] == 200 and success == True:
-        busses = busses_resp["route_short_names"]
+    success = buses_resp["success"]
+    if buses_resp["status_code"] != None and buses_resp["status_code"] == 200 and success == True:
+        buses = buses_resp["route_short_names"]
 
         numTimesToReturn = 1
 
-        if len(busses) <= 2:
+        if len(buses) <= 2:
             numTimesToReturn = 3
 
-        for route in busses:
+        for route in buses:
             next_deps = get_next_departure_times_for_route_and_stop_code(route, stopCode, numTimesToReturn)
 
             if next_deps["status_code"] != None and next_deps["status_code"] == 200:
