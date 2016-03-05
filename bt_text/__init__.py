@@ -37,6 +37,6 @@ def index():
     return 'Hello World!'
 
 
-@app.route('/text')
+@app.route('/sms')
 def handle_text():
     pass
