@@ -15,4 +15,4 @@ Use Issues to join the discussion or come to a [hack night](http://www.meetup.co
 
 License
 ------
-NRV Business Help is licensed under the [MIT](LICENSE) license.
+BT Text is licensed under the [MIT](LICENSE) license.
