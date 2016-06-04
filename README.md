@@ -9,6 +9,8 @@ Status
 ------
 Currently a work in progress with no deployment
 
+A single endpoint for SMS replies has been created and works with out any error handling currently implemented. 
+
 Contributing
 ------
 Use Issues to join the discussion or come to a [hack night](http://www.meetup.com/CodeforNRV/)

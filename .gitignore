@@ -1,2 +1,3 @@
 *.pyc
 btt_env/
+*__pycache__/
