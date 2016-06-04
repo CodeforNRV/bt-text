@@ -1,6 +1,6 @@
-from flask import Flask, json
+from flask import Flask, json, request
 import os
-import bt_text.bt_request as api
+import bt_text.bt_request as bt_api
 import pudb
 
 # User story:
@@ -18,8 +18,6 @@ import pudb
 
 # Sends stop code and route code, returns next 5 arrival times
 
-#from pudb import set_trace; set_trace()
-
 
 def create_app():
 
@@ -36,11 +34,28 @@ app = create_app()
 
 @app.route('/')
 def index():
-    #reply = api.get_busses_for_stop_code(1113)
-    #pudb.set_trace()
-    return 'Hello World!'
+    reply = "Welcome to the BT Text/Phone API"
+    return reply
 
 
-@app.route('/sms')
+@app.route('/sms', methods=['GET', 'POST'])
 def handle_text():
-    pass
+    
+    data = request.form['Body']
+    #pudb.set_trace()
+    rt_code = int(data)
+    times = bt_api.get_times_for_stop_code(rt_code)
+
+    message = ""
+    for stop in times['times']:
+
+        for time in stop[1]:
+            dt = time.split()
+            ft = dt[1][:-3] 
+            message += "{name} @ {time}{apm};\n".format(name=stop[0],time=ft, apm=dt[2].lower())
+
+    reply = """<?xml version="1.0" encoding="UTF-8" ?>
+            <Response>
+            <Message>{content}</Message>
+            </Response>""".format(content=message)
+    return reply
