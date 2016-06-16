@@ -9,11 +9,19 @@ Status
 ------
 Currently a work in progress with no deployment
 
-A single endpoint for SMS replies has been created and works with out any error handling currently implemented. 
+A single endpoint for SMS replies has been created and works with out any error handling currently implemented.
 
 Contributing
 ------
 Use Issues to join the discussion or come to a [hack night](http://www.meetup.com/CodeforNRV/)
+
+Deploying using Docker
+------
+Do a git clone to put the files on your local machine. Then run:
+```bash
+docker run --name bt_text --restart=always -p 80:80 -v /path/to/bt_text/:/app -d jazzdd/alpine-flask
+```
+You'll need this server to be available from the outside world so that you can configure your Twilio account to use it.
 
 License
 ------

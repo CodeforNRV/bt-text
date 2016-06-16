@@ -1,1 +1,1 @@
-web: python manage.py --log-file 
+web: python app.py --log-file
