@@ -17,11 +17,17 @@ Use Issues to join the discussion or come to a [hack night](http://www.meetup.co
 
 Deploying using Docker
 ------
-Do a git clone to put the files on your local machine. Then run:
+A Docker image is available on Gitlab.com and can be run like so:
 ```bash
-docker run --name bt_text --restart=always -p 80:80 -v /path/to/bt_text/:/app -d jazzdd/alpine-flask
+docker run --name bt_text -p 80:80 -d registry.gitlab.com/codefornrv/bt_text
 ```
-You'll need this server to be available from the outside world so that you can configure your Twilio account to use it.
+
+If you want to do local development, you can do a git clone to put the files on your machine. Then run:
+```bash
+docker run --name bt_text -p 80:80 -v /path/to/bt_text/:/app -d registry.gitlab.com/codefornrv/bt_text
+```
+replacing "/path/to/bt_text/" with the location of the git repository you just cloned. To actually test with a Twilio you've setup, 
+you'll need this server to be available from the outside world from a public IP or DNS entry so that you can configure your Twilio account to use it.
 
 License
 ------
