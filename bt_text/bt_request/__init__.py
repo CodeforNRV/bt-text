@@ -183,6 +183,7 @@ def get_buses_for_stop_code(stopCode):
 
     route_short_names = []
     route_names = []
+    routes = {}
 
     # pudb.set_trace()
 
@@ -192,10 +193,12 @@ def get_buses_for_stop_code(stopCode):
             route_short_names.append(child.text)
         for child in resp["xml"].iter('RouteName'):
             route_names.append(child.text)
+        for child in resp["xml"].iter('ScheduledRoutes'):
+            routes[child.find('RouteShortName').text] = child.find('RouteName').text
     else:
         success = False
 
-    return { "success": success, "status_code": resp["status_code"], "route_short_names": route_short_names, "route_names": route_names }
+    return { "success": success, "status_code": resp["status_code"], "route_short_names": route_short_names, "route_names": route_names, "routes": routes }
 
 
 def get_times_for_stop_code(stopCode, requestShortNames):
@@ -204,10 +207,8 @@ def get_times_for_stop_code(stopCode, requestShortNames):
     times = []
     success = buses_resp["success"]
     if buses_resp["status_code"] != None and buses_resp["status_code"] == 200 and success == True:
-        if requestShortNames == True:
-            buses = buses_resp["route_short_names"]
-        else:
-            buses = buses_resp[route_names]
+        buses = buses_resp["route_short_names"]
+        print(buses_resp["routes"])
 
         numTimesToReturn = 1
 
@@ -218,7 +219,10 @@ def get_times_for_stop_code(stopCode, requestShortNames):
             next_deps = get_next_departure_times_for_route_and_stop_code(route, stopCode, numTimesToReturn)
 
             if next_deps["status_code"] != None and next_deps["status_code"] == 200:
-                times.append( (route, next_deps["times"] ) )
+                if requestShortNames == True:
+                    times.append( (route, next_deps["times"] ) )
+                else:
+                    times.append( (buses_resp["routes"][route], next_deps["times"] ) )
             else:
                 success = False
                 break

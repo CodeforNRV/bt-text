@@ -74,8 +74,8 @@ def handle_voice_call():
 
 @app.route('/voice', methods=['POST'])
 def handle_voice_input():
-
-    data = request.form['Body']
+    print(request.form['Digits'])
+    data = request.form['Digits']
     rt_code = int(data)
     times = bt_api.get_times_for_stop_code(stopCode=rt_code, requestShortNames=False)
 
