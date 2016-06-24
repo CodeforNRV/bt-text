@@ -181,22 +181,31 @@ def get_next_departure_times_for_route_and_stop_code(routeShortName, stopCode, n
 def get_buses_for_stop_code(stopCode):
     resp = __req_get_scheduled_routes(stopCode)
 
+    success = True
     route_short_names = []
     route_names = []
     routes = {}
 
-    # pudb.set_trace()
-
-    success = True
-    if resp["status_code"] != None and resp["status_code"] == 200:
-        for child in resp["xml"].iter('RouteShortName'):
-            route_short_names.append(child.text)
-        for child in resp["xml"].iter('RouteName'):
-            route_names.append(child.text)
-        for child in resp["xml"].iter('ScheduledRoutes'):
-            routes[child.find('RouteShortName').text] = child.find('RouteName').text
-    else:
+    if len(resp["xml"].findall('.//Error')) > 0:
+        #Successful response from server, but likely a bad stop number. We'll see if there are any routes in the calling function to handle'
         success = False
+
+    else:
+        # pudb.set_trace()
+
+        if resp["status_code"] != None and resp["status_code"] == 200:
+            for child in resp["xml"].iter('RouteShortName'):
+                route_short_names.append(child.text)
+            for child in resp["xml"].iter('RouteName'):
+                route_names.append(child.text)
+            for child in resp["xml"].iter('ScheduledRoutes'):
+                routes[child.find('RouteShortName').text] = child.find('RouteName').text
+        else:
+            success = False
+        
+        if len(routes) == 0:
+            #Bad stop number likely
+            success = False
 
     return { "success": success, "status_code": resp["status_code"], "route_short_names": route_short_names, "route_names": route_names, "routes": routes }
 
@@ -208,9 +217,11 @@ def get_times_for_stop_code(stopCode, requestShortNames):
     success = buses_resp["success"]
     if buses_resp["status_code"] != None and buses_resp["status_code"] == 200 and success == True:
         buses = buses_resp["route_short_names"]
-        print(buses_resp["routes"])
 
         numTimesToReturn = 1
+
+        if len(buses) == 0:
+            return { "success": True, "times": None}
 
         if len(buses) <= 2:
             numTimesToReturn = 3
@@ -226,6 +237,9 @@ def get_times_for_stop_code(stopCode, requestShortNames):
             else:
                 success = False
                 break
+    elif buses_resp["status_code"] != None and buses_resp["status_code"] == 200 and success == False and len(buses_resp["routes"]) == 0:
+        #No routes were listed, so probably an invalid stop number
+        success = "Invalid"
     else:
         success = False
 
