@@ -2,6 +2,7 @@ from flask import Flask, json, request
 import os
 import bt_text.bt_request as bt_api
 import pudb
+import re
 
 # User story:
 # Sends stop code, gets next times for the stop. If there are fewer than 3
@@ -59,14 +60,40 @@ def index():
     reply = "Welcome to the BT Text/Phone API"
     return reply
 
+
+def parse_rt_stop(data):
+    args = re.findall(r"[\w']+", data)
+    print args
+    if len(args) == 1:
+        rt_code = None
+        stop_code = int(args[0])
+    if len(args) == 2:
+        try:
+            stop_code = int(args[0])
+            rt_code = args[1]
+        except:
+            stop_code = int(args[1])
+            rt_code = args[0]
+
+    return rt_code, stop_code
+
+
 @app.route('/sms', methods=['POST'])
 def handle_text():
     try:
         data = request.form['Body']
-        rt_code = int(data)
+        print "parsing:", data
+        rt_code, stop_code = parse_rt_stop(data)
     except:
         raise InvalidUsage('<Message>Invalid stop number, please try again.</Message>')
-    times = bt_api.get_times_for_stop_code(stopCode=rt_code, requestShortNames=True)
+
+    if rt_code:
+        times = bt_api.get_next_departure_times_for_route_and_stop_code(routeShortName=rt_code, stopCode=stop_code)
+
+        #times for route and stop code version doesn't have rt code embeded in it, so modify
+        times['times'] = [(rt_code.upper(), [t]) for t in times['times']]
+    else:
+        times = bt_api.get_times_for_stop_code(stopCode=stop_code, requestShortNames=True)
     
     if times['success'] == False:
         raise InvalidUsage("""
