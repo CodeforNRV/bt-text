@@ -38,7 +38,7 @@ def __req_get_current_bus_info():
 
     return {"status_code": code, "content": content, "xml": root, "exception": exception}
 
-def __req_get_current_routes(tripID):
+def __req_get_current_routes():
     exception = None
     try:
         req = requests.post("http://216.252.195.248/webservices/bt4u_webservice.asmx/GetCurrentRoutes")
@@ -164,19 +164,31 @@ def __req_get_summary(stopCode):
 
     return {"status_code": code, "content": content, "xml": root, "exception": exception}
 
-def get_next_departure_times_for_route_and_stop_code(routeShortName, stopCode, numTimesToReturn=3):
+def is_current_route(routeShortName):
+    resp = __req_get_current_routes()
+    currentRoutes = []
+    if resp["status_code"] != None and resp["status_code"] == 200:
+        for child in resp["xml"].iter("CurrentRoutes"):
+            currentRoutes.append(child.find('RouteShortName').text.lower())
+    return routeShortName in currentRoutes
+
+def get_next_departure_times_for_route_and_stop_code(routeShortName, stopCode, numTimesToReturn=5):
     results = []
 
     resp = __req_get_next_departures(routeShortName, stopCode)
     success = True
+    error = None
     if resp["status_code"] != None and resp["status_code"] == 200:
         for child in resp["xml"].iter('AdjustedDepartureTime'):
             results.append(child.text)
         sorted(results)
+        if len(results) == 0:
+            success = False
+            error = "<Message>It looks like there are no buses currently running for that route and stop. You could try just sending the stop number to see all current routes at this location.</Message>"
     else:
         success = False
 
-    return { "success": success, "status_code": resp["status_code"], "times": results[:numTimesToReturn]}
+    return { "success": success, "status_code": resp["status_code"], "times": results[:numTimesToReturn], "error": error}
 
 def get_buses_for_stop_code(stopCode):
     resp = __req_get_scheduled_routes(stopCode)
@@ -202,7 +214,7 @@ def get_buses_for_stop_code(stopCode):
                 routes[child.find('RouteShortName').text] = child.find('RouteName').text
         else:
             success = False
-        
+
         if len(routes) == 0:
             #Bad stop number likely
             success = False

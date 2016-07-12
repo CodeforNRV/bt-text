@@ -65,36 +65,52 @@ def parse_rt_stop(data):
     args = re.findall(r"[\w']+", data)
     print args
     if len(args) == 1:
-        rt_code = None
-        stop_code = int(args[0])
-    if len(args) == 2:
+        try:
+            rt_code = None
+            stop_code = int(args[0])
+            return rt_code, stop_code
+        except:
+            raise InvalidUsage("<Message>We couldn't understand that one. Try sending just the stop number or the stop number and route code, for example 'MSN 1110'</Message>")
+    elif len(args) == 2:
         try:
             stop_code = int(args[0])
             rt_code = args[1]
+            return rt_code, stop_code
         except:
+            pass
+        try:
             stop_code = int(args[1])
             rt_code = args[0]
-
-    return rt_code, stop_code
+            return rt_code, stop_code
+        except:
+            raise InvalidUsage("<Message>We couldn't understand that one. Try sending just the stop number or the stop number and route code, for example 'MSN 1110'</Message>")
+    else:
+        raise InvalidUsage("<Message>We couldn't understand that one. Try sending just the stop number or the stop number and route code, for example 'MSN 1110'</Message>")
 
 
 @app.route('/sms', methods=['POST'])
 def handle_text():
-    try:
-        data = request.form['Body']
-        print "parsing:", data
-        rt_code, stop_code = parse_rt_stop(data)
-    except:
-        raise InvalidUsage('<Message>Invalid stop number, please try again.</Message>')
+    data = request.form['Body']
+    print "parsing:", data
+    rt_code, stop_code = parse_rt_stop(data)
 
     if rt_code:
+        rt_code = rt_code.lower()
+
+        #Determine if rt_code is valid for currently running routes
+        if bt_api.is_current_route(rt_code) == False:
+            raise InvalidUsage("<Message>It looks like that bus route isn't currently running or is incorrect. You could try just sending the stop number to see all current routes at this location.</Message>")
+
         times = bt_api.get_next_departure_times_for_route_and_stop_code(routeShortName=rt_code, stopCode=stop_code)
 
+        if times['success'] == False and times['error']:
+            raise InvalidUsage("<Message>It looks like there are no buses currently running for that route and stop. You could try just sending the stop number to see all current routes at this location.</Message>")
+            
         #times for route and stop code version doesn't have rt code embeded in it, so modify
         times['times'] = [(rt_code.upper(), [t]) for t in times['times']]
     else:
         times = bt_api.get_times_for_stop_code(stopCode=stop_code, requestShortNames=True)
-    
+
     if times['success'] == False:
         raise InvalidUsage("""
             <Message>We're sorry, there was a problem retrieving stop times, please try again later.</Message>
@@ -109,7 +125,7 @@ def handle_text():
         """)
 
     message = ""
-    
+
     for stop in times['times']:
 
         for time in stop[1]:
@@ -155,7 +171,7 @@ def handle_voice_input():
             <Say>We're sorry, we didn't receive any input. Goodbye!</Say>
             """)
     times = bt_api.get_times_for_stop_code(stopCode=rt_code, requestShortNames=False)
-    
+
     if times['success'] is False:
         raise InvalidUsage("""
             <Say>We're sorry, there was a problem retrieving stop times, please try again later.</Say>
